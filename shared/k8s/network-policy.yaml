@@ -1,0 +1,29 @@
+# shared namespace への Ingress は既定で全拒否する
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# `k3s-practice/shared-access: "true"` ラベルを付けた namespace からのみ PostgreSQL への接続を許可する
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres-from-clients
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              k3s-practice/shared-access: "true"
+      ports:
+        - protocol: TCP
+          port: 5432

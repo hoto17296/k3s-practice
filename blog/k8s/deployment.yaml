@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog
+  labels:
+    app.kubernetes.io/name: blog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: blog
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: blog
+    spec:
+      containers:
+        - name: blog
+          # ローカルで docker build したイメージを使う（Rancher Desktop の moby エンジン前提）
+          image: blog:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            # 練習用に認証情報を直書きしている（シークレット管理は今後の課題）
+            - name: DATABASE_URL
+              value: postgresql://blog:password@postgres.shared.svc.cluster.local:5432/blog
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi

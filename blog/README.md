@@ -38,3 +38,21 @@ bun run start   # API と dist/ を http://localhost:3000 で配信
 | POST     | `/api/posts`     | 作成 `{ "title": string, "body": string }` |
 | PUT      | `/api/posts/:id` | 更新 `{ "title": string, "body": string }` |
 | DELETE   | `/api/posts/:id` | 削除                                       |
+
+## Kubernetes (k3s)
+
+namespace `blog` にデプロイし、Traefik の Ingress で http://blog.localhost に公開する。
+DB は shared の PostgreSQL を使う。事前に shared 側で DB・ユーザー `blog` を作成しておくこと。
+
+```sh
+docker build -t blog:dev .   # Rancher Desktop (moby) ならビルドしたイメージを k3s がそのまま使える
+kubectl apply -k k8s
+kubectl -n blog rollout status deployment/blog
+```
+
+コードを変更したら、再ビルドしてから `kubectl -n blog rollout restart deployment/blog` を実行する。
+
+NetworkPolicy により、この namespace の Pod は以下の通信しかできない。
+
+- Ingress: Traefik (`kube-system`) から TCP 3000
+- Egress: CoreDNS への DNS、`shared` の PostgreSQL への TCP 5432

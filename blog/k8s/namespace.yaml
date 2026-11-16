@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: blog
+  labels:
+    # shared namespace の NetworkPolicy がこのラベルで接続元を許可する
+    k3s-practice/shared-access: "true"

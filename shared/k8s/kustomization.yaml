@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: shared
+
+resources:
+  - namespace.yaml
+  - network-policy.yaml
+  - postgres.yaml
+
+secretGenerator:
+  # 練習用にスーパーユーザーのパスワードを直書きしている（本番ではやらないこと）
+  - name: postgres-superuser
+    literals:
+      - POSTGRES_PASSWORD=postgres
